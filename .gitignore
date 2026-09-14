@@ -46,3 +46,10 @@ docker-compose.override.yml
 # Logs
 *.log
 logs/
+
+# Dashboard
+dashboard/node_modules/
+dashboard/dist/
+
+# Feedback data
+feedback/
