@@ -25,6 +25,8 @@ def compute_rolling_features(
     - Rolling min
     - Rolling max
 
+    Uses pd.concat to avoid DataFrame fragmentation from repeated .loc assignment.
+
     Args:
         df: C-MAPSS DataFrame with unit_id, cycle, and sensor columns.
         sensor_cols: Sensor columns to compute features for.
@@ -39,6 +41,7 @@ def compute_rolling_features(
         windows = [5, 10, 20]
 
     df = df.copy()
+    new_cols: dict[str, pd.Series] = {}
 
     for unit_id in df["unit_id"].unique():
         unit_mask = df["unit_id"] == unit_id
@@ -48,12 +51,18 @@ def compute_rolling_features(
 
             for w in windows:
                 rolling = series.rolling(window=w, min_periods=1)
-                df.loc[unit_mask, f"{col}_mean_{w}"] = rolling.mean()
-                df.loc[unit_mask, f"{col}_std_{w}"] = rolling.std().fillna(0)
-                df.loc[unit_mask, f"{col}_min_{w}"] = rolling.min()
-                df.loc[unit_mask, f"{col}_max_{w}"] = rolling.max()
+                for suffix, vals in [
+                    (f"mean_{w}", rolling.mean()),
+                    (f"std_{w}", rolling.std().fillna(0)),
+                    (f"min_{w}", rolling.min()),
+                    (f"max_{w}", rolling.max()),
+                ]:
+                    col_name = f"{col}_{suffix}"
+                    if col_name not in new_cols:
+                        new_cols[col_name] = pd.Series(dtype="float64", index=df.index)
+                    new_cols[col_name].loc[unit_mask] = vals
 
-    return df
+    return pd.concat([df, pd.DataFrame(new_cols, index=df.index)], axis=1)
 
 
 def compute_ewma_features(

@@ -249,11 +249,16 @@ def load_prepared(
     X, y_binary, y_multiclass = prepare_features_and_target(raw_df, include_derived)
 
     # Stratified split on multiclass target
+    # Some classes (RNF) may have < 2 samples, which breaks StratifiedShuffleSplit
+    # in newer scikit-learn. Fall back to non-stratified split in that case.
+    class_counts = y_multiclass.value_counts()
+    can_stratify = (class_counts >= 2).all()
+
     X_train, X_test, y_train_b, y_test_b, y_train_m, y_test_m = train_test_split(
         X, y_binary, y_multiclass,
         test_size=test_size,
         random_state=random_state,
-        stratify=y_multiclass,
+        stratify=y_multiclass if can_stratify else None,
     )
 
     # Class distribution
