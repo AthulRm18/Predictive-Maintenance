@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  # --- TimescaleDB (PostgreSQL with time-series extension) ---
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: machineguard-db
+    environment:
+      POSTGRES_DB: machineguard
+      POSTGRES_USER: machineguard
+      POSTGRES_PASSWORD: machineguard_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U machineguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- MLflow Tracking Server ---
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.9.2
+    container_name: machineguard-mlflow
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://machineguard:machineguard_dev@timescaledb:5432/machineguard
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: /mlflow/artifacts
+    ports:
+      - "5001:5000"
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://machineguard:machineguard_dev@timescaledb:5432/machineguard
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+
+  # --- MachineGuard API Backend ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: machineguard-api
+    environment:
+      DB_HOST: timescaledb
+      DB_PORT: 5432
+      DB_NAME: machineguard
+      DB_USER: machineguard
+      DB_PASSWORD: machineguard_dev
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      DEBUG: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./machineguard:/app/machineguard
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+volumes:
+  timescale_data:
+  mlflow_artifacts:
