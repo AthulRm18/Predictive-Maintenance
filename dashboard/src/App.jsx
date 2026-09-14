@@ -1,78 +1,66 @@
 import { useState } from 'react'
 import './index.css'
-import OverviewPage from './pages/Overview'
-import FleetPage from './pages/Fleet'
+import MachinesPage from './pages/Machines'
+import TelemetryPage from './pages/Telemetry'
 import ReviewPage from './pages/Review'
-import WhatIfPage from './pages/WhatIf'
+import SimulatorPage from './pages/Simulator'
 
-const NAV_ITEMS = [
-  { id: 'overview', label: 'Overview', icon: '📊' },
-  { id: 'fleet', label: 'Fleet Map', icon: '🏭' },
-  { id: 'review', label: 'Review Queue', icon: '👁' },
-  { id: 'whatif', label: 'What-If', icon: '🔮' },
+const NAV = [
+  { group: 'Monitor', items: [
+    { id: 'machines', label: 'Machines' },
+    { id: 'telemetry', label: 'Telemetry' },
+  ]},
+  { group: 'Operate', items: [
+    { id: 'review', label: 'Review Queue' },
+    { id: 'simulator', label: 'Simulator' },
+  ]},
 ]
 
 function App() {
-  const [activePage, setActivePage] = useState('overview')
+  const [page, setPage] = useState('machines')
 
   const renderPage = () => {
-    switch (activePage) {
-      case 'overview': return <OverviewPage />
-      case 'fleet': return <FleetPage />
+    switch (page) {
+      case 'machines': return <MachinesPage />
+      case 'telemetry': return <TelemetryPage />
       case 'review': return <ReviewPage />
-      case 'whatif': return <WhatIfPage />
-      default: return <OverviewPage />
+      case 'simulator': return <SimulatorPage />
+      default: return <MachinesPage />
     }
   }
 
   return (
     <>
       <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-icon">⚙</div>
-          <div>
-            <h1>MachineGuard</h1>
-            <span className="version">Predictive Maintenance v2.0</span>
+        <div className="sidebar-brand">
+          <h1>MachineGuard</h1>
+          <span>v2.0</span>
+        </div>
+
+        {NAV.map(group => (
+          <div className="nav-group" key={group.group}>
+            <div className="nav-group-label">{group.group}</div>
+            {group.items.map(item => (
+              <button
+                key={item.id}
+                className={`nav-item ${page === item.id ? 'active' : ''}`}
+                onClick={() => setPage(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-        </div>
+        ))}
 
-        <div className="nav-section">
-          <div className="nav-section-title">Monitoring</div>
-          {NAV_ITEMS.slice(0, 2).map(item => (
-            <button
-              key={item.id}
-              className={`nav-link ${activePage === item.id ? 'active' : ''}`}
-              onClick={() => setActivePage(item.id)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="nav-section">
-          <div className="nav-section-title">Intelligence</div>
-          {NAV_ITEMS.slice(2).map(item => (
-            <button
-              key={item.id}
-              className={`nav-link ${activePage === item.id ? 'active' : ''}`}
-              onClick={() => setActivePage(item.id)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ marginTop: 'auto', padding: '16px 12px', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="live-indicator"></span>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>System Online</span>
+        <div className="sidebar-footer">
+          <div className="sidebar-status">
+            <span className="status-pulse" />
+            <span>System operational</span>
           </div>
         </div>
       </aside>
 
-      <main className="main-content">
+      <main className="main">
         {renderPage()}
       </main>
     </>
