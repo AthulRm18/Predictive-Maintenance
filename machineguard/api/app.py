@@ -124,10 +124,12 @@ def create_app() -> FastAPI:
     from machineguard.api.routes.predict import router as predict_router
     from machineguard.api.routes.explain import router as explain_router
     from machineguard.api.routes.streaming import router as streaming_router
+    from machineguard.api.routes.review import router as review_router
 
     app.include_router(predict_router, prefix="/api/v1", tags=["Prediction"])
     app.include_router(explain_router, prefix="/api/v1", tags=["Explainability"])
     app.include_router(streaming_router, tags=["Streaming"])
+    app.include_router(review_router, prefix="/api/v1", tags=["HITL"])
 
     return app
 

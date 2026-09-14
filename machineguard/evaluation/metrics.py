@@ -141,7 +141,7 @@ def per_class_report(
 def model_comparison_report(
     old_metrics: dict[str, float],
     new_metrics: dict[str, float],
-    metric_key: str = "macro_recall",
+    metric_key: str | None = None,
     improvement_threshold: float = 0.0,
 ) -> dict[str, Any]:
     """Compare old and new model metrics for the retraining gate.
@@ -149,27 +149,62 @@ def model_comparison_report(
     Used in Stage 3: a retrained model is only promoted if it beats the
     current production model on the specified metric.
 
+    Handles both higher-is-better (recall, f1) and lower-is-better (rmse)
+    metrics. Auto-detects the best comparison metric if none specified.
+
     Args:
         old_metrics: Metrics from the current production model.
         new_metrics: Metrics from the candidate retrained model.
-        metric_key: Which metric to use for comparison.
+        metric_key: Which metric to use for comparison. Auto-detected if None.
         improvement_threshold: Minimum improvement required (e.g., 0.01 for 1%).
 
     Returns:
         Dict with comparison results and promotion recommendation.
     """
+    # Metrics where lower is better
+    LOWER_IS_BETTER = {"rmse", "asymmetric_score", "loss", "error", "mae", "mse"}
+
+    # Auto-detect metric key if not specified
+    if metric_key is None:
+        # Priority order for detection
+        priority = ["macro_recall", "macro_f1", "rmse", "asymmetric_score"]
+        common_keys = set(old_metrics.keys()) & set(new_metrics.keys())
+        for key in priority:
+            if key in common_keys:
+                metric_key = key
+                break
+        if metric_key is None and common_keys:
+            metric_key = sorted(common_keys)[0]
+        if metric_key is None:
+            return {
+                "should_promote": False,
+                "reason": "no_common_metrics",
+                "details": {
+                    "old_keys": list(old_metrics.keys()),
+                    "new_keys": list(new_metrics.keys()),
+                },
+            }
+
     old_val = old_metrics.get(metric_key, 0.0)
     new_val = new_metrics.get(metric_key, 0.0)
-    improvement = new_val - old_val
+    lower_better = metric_key in LOWER_IS_BETTER
+
+    if lower_better:
+        # For RMSE etc: improvement = old - new (positive = better)
+        improvement = old_val - new_val
+    else:
+        # For recall etc: improvement = new - old (positive = better)
+        improvement = new_val - old_val
 
     should_promote = improvement > improvement_threshold
 
     return {
         "metric": metric_key,
+        "lower_is_better": lower_better,
         "old_value": old_val,
         "new_value": new_val,
         "improvement": improvement,
-        "improvement_pct": (improvement / max(old_val, 1e-8)) * 100,
+        "improvement_pct": (improvement / max(abs(old_val), 1e-8)) * 100,
         "threshold": improvement_threshold,
         "should_promote": should_promote,
         "reason": (

@@ -84,3 +84,76 @@ class ErrorResponse(BaseModel):
     """Standard error response."""
     error: str
     detail: str = ""
+
+
+# ---- HITL Models ----
+
+class ReviewQueueItem(BaseModel):
+    """A prediction routed to the review queue."""
+    id: str
+    prediction_id: str
+    prediction: dict[str, Any]
+    sensor_readings: dict[str, float] | None = None
+    routing_reasons: list[str]
+    priority: str
+    status: str = "pending"
+    created_at: str
+
+
+class SubmitReviewRequest(BaseModel):
+    """Human verdict on a prediction."""
+    prediction_id: str = Field(..., description="ID of the prediction to review")
+    verdict: str = Field(
+        ...,
+        description="One of: confirmed_fault, false_alarm, monitoring, corrected"
+    )
+    corrected_label: str | None = Field(
+        None,
+        description="If verdict is 'corrected', the true label"
+    )
+    reviewer_id: str = Field(default="anonymous", description="Reviewer identifier")
+    notes: str = Field(default="", description="Free-text notes")
+
+
+class SubmitReviewResponse(BaseModel):
+    """Response after submitting a review."""
+    status: str
+    prediction_id: str
+    verdict: str
+    retrain_check: dict[str, Any] = Field(default_factory=dict)
+
+
+class FeedbackStatsResponse(BaseModel):
+    """Statistics about accumulated feedback."""
+    fleet_id: str
+    total_feedback: int
+    verdicts: dict[str, int] = Field(default_factory=dict)
+    should_retrain: bool
+    retrain_stats: dict[str, Any] = Field(default_factory=dict)
+
+
+class RetrainRequest(BaseModel):
+    """Request to trigger model retraining."""
+    model_type: str = Field(
+        ..., description="Which model to retrain: 'rul' or 'fault'"
+    )
+    force: bool = Field(
+        default=False,
+        description="Force retrain even if feedback threshold not met"
+    )
+
+
+class RetrainResponse(BaseModel):
+    """Response from a retrain operation."""
+    success: bool
+    model: str
+    version: str | None = None
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    gate_decision: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
+
+
+class ModelRegistryResponse(BaseModel):
+    """Current status of the model registry."""
+    models: dict[str, Any] = Field(default_factory=dict)
+    history_count: int = 0
