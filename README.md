@@ -4,7 +4,7 @@
 
 Ferron is a production-grade predictive maintenance system that monitors machine fleets, predicts failures before they happen, and tells operators exactly what to do about it.
 
-Built with XGBoost, FastAPI, Redis Streams, and a React dashboard designed with the precision of SpaceX mission control.
+Built with XGBoost, FastAPI, Redis Streams, and a React dashboard.
 
 > **Live Dashboard**: [ferron.vercel.app](https://ferron.vercel.app)
 
