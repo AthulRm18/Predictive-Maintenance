@@ -1,0 +1,41 @@
+{
+  "rul": {
+    "validation": {
+      "rmse": 15.805899828121824,
+      "mae": 11.239796492186459,
+      "asymmetric_score": 23631.833001554667,
+      "mean_error": -0.8301325134621791,
+      "std_error": 15.78408531992635,
+      "pct_early": 60.319410319410316,
+      "pct_late": 39.68058968058968,
+      "max_early_error": -60.48271560668945,
+      "max_late_error": 57.178306579589844,
+      "n_samples": 4070
+    },
+    "test": {
+      "rmse": 18.922064859980818,
+      "mae": 13.104502954483031,
+      "asymmetric_score": 1129.4141640624412,
+      "mean_error": 2.91926739692688,
+      "std_error": 18.695518618924712,
+      "pct_early": 40.0,
+      "pct_late": 60.0,
+      "max_early_error": -59.20391845703125,
+      "max_late_error": 55.64234161376953,
+      "n_samples": 100
+    },
+    "n_features": 241,
+    "hyperparams": {
+      "n_estimators": 200,
+      "max_depth": 6,
+      "learning_rate": 0.05,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "min_child_weight": 5,
+      "reg_alpha": 0.1,
+      "reg_lambda": 1.0,
+      "random_state": 42,
+      "n_jobs": -1
+    }
+  }
+}
