@@ -105,17 +105,22 @@ def per_class_report(
     Returns:
         Dict with per-class metrics, macro averages, and confusion matrix.
     """
+    # Build labels list: use class_names if provided, else infer from data
+    labels = class_names if class_names else sorted(set(y_true) | set(y_pred))
+
+    # Pass both `labels` and `target_names` so sklearn aligns them properly,
+    # even when some classes don't appear in y_pred or y_true.
     report = classification_report(
         y_true, y_pred,
-        target_names=class_names,
+        labels=labels,
+        target_names=labels,
         output_dict=True,
         zero_division=0,
     )
 
-    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
 
     # Extract per-class recall specifically (the key metric per the spec)
-    labels = class_names or sorted(set(y_true) | set(y_pred))
     per_class_recall = {}
     for label in labels:
         if label in report:
