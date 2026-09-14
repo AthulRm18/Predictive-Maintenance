@@ -67,6 +67,46 @@ class ModelSettings(BaseSettings):
     model_config = {"extra": "ignore"}
 
 
+class RedisSettings(BaseSettings):
+    """Redis connection settings for streaming."""
+
+    redis_host: str = Field(default="localhost", alias="REDIS_HOST")
+    redis_port: int = Field(default=6379, alias="REDIS_PORT")
+    redis_db: int = Field(default=0, alias="REDIS_DB")
+    redis_password: str = Field(default="", alias="REDIS_PASSWORD")
+
+    @property
+    def redis_url(self) -> str:
+        auth = f":{self.redis_password}@" if self.redis_password else ""
+        return f"redis://{auth}{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+    model_config = {"env_prefix": "", "extra": "ignore"}
+
+
+class StreamingSettings(BaseSettings):
+    """Streaming replay and consumer settings."""
+
+    # Stream names
+    stream_cmapss: str = "sensor:cmapss"
+    stream_ai4i: str = "sensor:ai4i"
+    stream_predictions: str = "predictions"
+
+    # Consumer group
+    consumer_group: str = "machineguard-consumer"
+    consumer_name: str = "worker-1"
+
+    # Replay speed (milliseconds per reading)
+    replay_speed_ms: int = Field(default=100, alias="REPLAY_SPEED_MS")
+
+    # Rolling window buffer size per machine
+    rolling_buffer_size: int = 30
+
+    # Max readings per consumer batch
+    batch_size: int = 10
+
+    model_config = {"env_prefix": "", "extra": "ignore"}
+
+
 class AppSettings(BaseSettings):
     """Top-level application settings."""
 
@@ -77,8 +117,10 @@ class AppSettings(BaseSettings):
     api_port: int = Field(default=8000, alias="API_PORT")
 
     db: DatabaseSettings = DatabaseSettings()
+    redis: RedisSettings = RedisSettings()
     mlflow: MLflowSettings = MLflowSettings()
     model: ModelSettings = ModelSettings()
+    streaming: StreamingSettings = StreamingSettings()
 
     model_config = {"env_prefix": "", "extra": "ignore"}
 
