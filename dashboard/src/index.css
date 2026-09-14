@@ -938,6 +938,110 @@ input[type="range"]::-webkit-slider-thumb {
   .main { margin-left: 0; padding: 16px; }
 }
 
+/* === Alert Notifications === */
+
+.alert-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.alert-toast {
+  pointer-events: auto;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: alertIn 0.25s ease-out;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.alert-toast:hover { background: var(--bg-2); }
+
+.alert-toast.exiting {
+  animation: alertOut 0.3s ease-in forwards;
+}
+
+.alert-toast.critical { border-left: 3px solid var(--red); }
+.alert-toast.warning { border-left: 3px solid var(--amber); }
+.alert-toast.info { border-left: 3px solid var(--accent); }
+
+@keyframes alertIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes alertOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+.alert-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.alert-dot.critical { background: var(--red); }
+.alert-dot.warning { background: var(--amber); }
+.alert-dot.info { background: var(--accent); }
+
+.alert-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.alert-machine {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-0);
+}
+
+.alert-time {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.alert-message {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+
+.alert-severity {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+.alert-severity.critical { color: var(--red-text); }
+.alert-severity.warning { color: var(--amber-text); }
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
